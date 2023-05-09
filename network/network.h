@@ -86,9 +86,9 @@ class Network : public QObject {
   float learn_stage{0.f};
   float test_step{0.f};
   float test_stage{0.f};
-  QVector<double> average_MLP_metrics_;
+  QVector<double> m_average_MLP_metrics;
   ProgressCeeper tkeeper;
-  bool break_flag_ = false;
+  bool m_break_flag = false;
   unsigned int m_epoch = 1U;
   unsigned int m_validation_parts = 0U;
   double m_learning_rate = 0.13;

@@ -16,8 +16,8 @@ class ProgressCeeper : QObject {
   void TestProgress(int);
 
  private:
-  QTime time_stamp_;
-  int progress_;
+  QTime m_time_stamp;
+  int m_progress;
 };
 
 #endif  // TIMECEEPER_H

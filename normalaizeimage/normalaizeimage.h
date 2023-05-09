@@ -12,7 +12,7 @@ class NormalaizeImage : QObject {
   static QImage normalize(QPixmap, int);
 
  private:
-  int pix_size_ = 28;
+  int m_pix_size = 28;
 };
 
 #endif  // NORMALAIZEIMAGE_H

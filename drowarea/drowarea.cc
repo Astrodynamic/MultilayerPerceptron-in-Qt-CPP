@@ -4,20 +4,20 @@ DrowArea::DrowArea(QObject *parent) : QGraphicsScene(parent) {}
 
 void DrowArea::mousePressEvent(QGraphicsSceneMouseEvent *event) {
   if (event->button() == Qt::LeftButton) {
-    addEllipse(event->scenePos().x() - size_ / 2,
-               event->scenePos().y() - size_ / 2, size_, size_, QPen(Qt::NoPen),
-               QBrush(brush_color_));
-    lastPoint_ = event->scenePos();
-    line_end_ = false;
+    addEllipse(event->scenePos().x() - m_size / 2,
+               event->scenePos().y() - m_size / 2, m_size, m_size, QPen(Qt::NoPen),
+               QBrush(m_brush_color));
+    m_lastPoint = event->scenePos();
+    m_line_end = false;
   }
 }
 
 void DrowArea::mouseMoveEvent(QGraphicsSceneMouseEvent *event) {
-  if (!line_end_) {
-    addLine(lastPoint_.x(), lastPoint_.y(), event->scenePos().x(),
+  if (!m_line_end) {
+    addLine(m_lastPoint.x(), m_lastPoint.y(), event->scenePos().x(),
             event->scenePos().y(),
-            QPen(brush_color_, size_, Qt::SolidLine, Qt::RoundCap));
-    lastPoint_ = event->scenePos();
+            QPen(m_brush_color, m_size, Qt::SolidLine, Qt::RoundCap));
+    m_lastPoint = event->scenePos();
   }
 }
 
@@ -25,20 +25,20 @@ void DrowArea::mouseReleaseEvent(QGraphicsSceneMouseEvent *event) {
   if (event->button() == Qt::RightButton) {
     clear();
   } else if (event->button() == Qt::LeftButton) {
-    line_end_ = true;
+    m_line_end = true;
     emit updatePicture();
   }
 }
 
-void DrowArea::SetBrushSize(int val) { size_ = val; }
+void DrowArea::SetBrushSize(int val) { m_size = val; }
 
 void DrowArea::SetBrushType(int type) {
   switch (type) {
     case 1:
-      brush_color_.setNamedColor("white");
+      m_brush_color.setNamedColor("white");
       break;
     default:
-      brush_color_.setNamedColor("black");
+      m_brush_color.setNamedColor("black");
       break;
   }
 }

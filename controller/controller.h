@@ -29,7 +29,7 @@ class Controller : public QMainWindow {
   Network m_model;
   QThread *thr = nullptr;
   QThread *thr_state = nullptr;
-  StateControl model_state_;
+  StateControl m_model_state;
 
  public:
   static Controller *create(QWidget *parent = nullptr);

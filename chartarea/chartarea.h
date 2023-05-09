@@ -16,7 +16,7 @@ class ChartArea : public QChartView {
   int GetResults(QVector<double> rate);
 
  private:
-  QChart *chart_;
+  QChart *m_chart;
 };
 
 class GraphArea : public QChartView {
@@ -29,7 +29,7 @@ class GraphArea : public QChartView {
   void SetNewMistake(QList<QPointF>);
 
  private:
-  QLineSeries *series_;
+  QLineSeries *m_series;
 };
 
 #endif  // CHARTAREA_H

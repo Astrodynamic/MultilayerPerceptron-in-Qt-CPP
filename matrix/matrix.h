@@ -31,8 +31,8 @@ class Matrix {
   T& operator()(const unsigned row, const unsigned col);
   const T& operator()(const unsigned row, const unsigned col) const;
 
-  const unsigned GetRows() const;
-  const unsigned GetCols() const;
+  unsigned GetRows() const;
+  unsigned GetCols() const;
 
  private:
   T** m_matrix = nullptr;
@@ -119,12 +119,12 @@ const T& Matrix<T>::operator()(const unsigned row, const unsigned col) const {
 }
 
 template <class T>
-const unsigned Matrix<T>::GetRows() const {
+unsigned Matrix<T>::GetRows() const {
   return m_rows;
 }
 
 template <class T>
-const unsigned Matrix<T>::GetCols() const {
+unsigned Matrix<T>::GetCols() const {
   return m_cols;
 }
 

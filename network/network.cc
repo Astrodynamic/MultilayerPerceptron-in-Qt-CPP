@@ -33,7 +33,7 @@ std::vector<std::pair<unsigned, Matrix<Neuron> *> > Network::LoadSCV(
         }
 
         if (position < line.size()) {
-          line = std::move(line.substr(position));
+          line = line.substr(position);
           result[layer].second->operator()(i, j).data =
               std::stoi(line, &position) / m_colorspace;
         }
@@ -47,11 +47,11 @@ std::vector<std::pair<unsigned, Matrix<Neuron> *> > Network::LoadSCV(
 QVector<double> Network::NormalizeResult() {
   QVector<double> result;
   if (m_flags == NetworkFlags::kMatrixLearning) {
-    for (int i = 0; i < m_layers_f.back()->GetRows(); ++i) {
+    for (unsigned int i = 0; i < m_layers_f.back()->GetRows(); ++i) {
       result.push_back(m_layers_f.back()->operator()(i, 0).data);
     }
   } else {
-    for (int i = 0; i < m_graph_layers.back().size(); ++i) {
+    for (unsigned int i = 0; i < m_graph_layers.back().size(); ++i) {
       result.push_back(m_graph_layers.back().at(i).data);
     }
   }
@@ -60,8 +60,8 @@ QVector<double> Network::NormalizeResult() {
 
 void Network::LoadLearnSample(const std::string &filename) {
   if (m_depths.size() && m_depths[m_layers_position[LayerType::kSLayer]]) {
-    m_input_csv_learn = std::move(
-        LoadSCV(filename, m_depths[m_layers_position[LayerType::kSLayer]]));
+    m_input_csv_learn =
+        LoadSCV(filename, m_depths[m_layers_position[LayerType::kSLayer]]);
   }
   learn_step = 99.f / (m_epoch * m_input_csv_learn.size());
   emit IsReady();
@@ -69,8 +69,8 @@ void Network::LoadLearnSample(const std::string &filename) {
 
 void Network::LoadTestsSample(const std::string &filename) {
   if (m_depths.size() && m_depths[m_layers_position[LayerType::kSLayer]]) {
-    m_input_csv_tests = std::move(
-        LoadSCV(filename, m_depths[m_layers_position[LayerType::kSLayer]]));
+    m_input_csv_tests =
+        LoadSCV(filename, m_depths[m_layers_position[LayerType::kSLayer]]);
   }
   test_step = 99.f / m_input_csv_tests.size();
   emit IsReady();
@@ -138,7 +138,7 @@ void Network::Update(QVector<unsigned> depths) {
 
 void Network::SetEpoch(unsigned epoch) { m_epoch = epoch; }
 
-void Network::BreakProcess() { break_flag_ = true; }
+void Network::BreakProcess() { m_break_flag = true; }
 
 void Network::SetCrossValidGroup(int group_val) {
   m_validation_parts = group_val;
@@ -191,7 +191,7 @@ void Network::Learning() {
       GraphLearning();
     }
   }
-  break_flag_ = false;
+  m_break_flag = false;
   emit IsReady();
   emit NetworkLearningStage(100);
   emit LearningTime(tkeeper.EndTimer());
@@ -215,17 +215,17 @@ void Network::Testing() {
   std::vector<double> metrics;
   test_stage = 0.f;
   if (m_flags == NetworkFlags::kMatrixLearning) {
-    metrics = std::move(MatrixTesting());
+    metrics = MatrixTesting();
   } else if (m_flags == NetworkFlags::kGraphLearning) {
-    metrics = std::move(GraphTesting());
+    metrics = GraphTesting();
   }
-  average_MLP_metrics_.clear();
+  m_average_MLP_metrics.clear();
   for (auto it = metrics.begin(); it != metrics.end(); ++it) {
-    average_MLP_metrics_.push_back(*it);
+    m_average_MLP_metrics.push_back(*it);
   }
-  break_flag_ = false;
+  m_break_flag = false;
   emit NetworkTestingStage(100);
-  emit SendMetrix(average_MLP_metrics_);
+  emit SendMetrix(m_average_MLP_metrics);
   emit TestingingTime(tkeeper.EndTimer());
   emit IsReady();
 }
@@ -240,21 +240,21 @@ void Network::SaveBinMLP(QString save_way) {
       d_stream << iter_of_depth;
     }
 
-    for (auto &iter_of_metrics_ : average_MLP_metrics_) {
+    for (auto &iter_of_metrics_ : m_average_MLP_metrics) {
       d_stream << iter_of_metrics_;
     }
 
     for (auto &iter_on_matrix : m_weights_main) {
-      for (int i = 0; i < iter_on_matrix->GetRows(); ++i) {
-        for (int j = 0; j < iter_on_matrix->GetCols(); ++j) {
+      for (unsigned int i = 0; i < iter_on_matrix->GetRows(); ++i) {
+        for (unsigned int j = 0; j < iter_on_matrix->GetCols(); ++j) {
           d_stream << iter_on_matrix->operator()(i, j).data;
         }
       }
     }
 
     for (auto &iter_on_bias : m_weights_bias) {
-      for (int i = 0; i < iter_on_bias->GetRows(); ++i) {
-        for (int j = 0; j < iter_on_bias->GetCols(); ++j) {
+      for (unsigned int i = 0; i < iter_on_bias->GetRows(); ++i) {
+        for (unsigned int j = 0; j < iter_on_bias->GetCols(); ++j) {
           d_stream << iter_on_bias->operator()(i, j).data;
         }
       }
@@ -282,23 +282,23 @@ void Network::LoadBinMLP(QString load_way) {
   }
 
   Update(new_vec);
-  average_MLP_metrics_.clear();
+  m_average_MLP_metrics.clear();
   for (int i = 0; i < 4; ++i) {
     double tmp_d;
     d_stream >> tmp_d;
-    average_MLP_metrics_.push_back(tmp_d);
+    m_average_MLP_metrics.push_back(tmp_d);
   }
-  emit SendMetrix(average_MLP_metrics_);
+  emit SendMetrix(m_average_MLP_metrics);
   for (auto &iter_on_matrix : m_weights_main) {
-    for (int i = 0; i < iter_on_matrix->GetRows(); ++i) {
-      for (int j = 0; j < iter_on_matrix->GetCols(); ++j) {
+    for (unsigned int i = 0; i < iter_on_matrix->GetRows(); ++i) {
+      for (unsigned int j = 0; j < iter_on_matrix->GetCols(); ++j) {
         d_stream >> iter_on_matrix->operator()(i, j).data;
       }
     }
   }
   for (auto &iter_on_bias : m_weights_bias) {
-    for (int i = 0; i < iter_on_bias->GetRows(); ++i) {
-      for (int j = 0; j < iter_on_bias->GetCols(); ++j) {
+    for (unsigned int i = 0; i < iter_on_bias->GetRows(); ++i) {
+      for (unsigned int j = 0; j < iter_on_bias->GetCols(); ++j) {
         d_stream >> iter_on_bias->operator()(i, j).data;
       }
     }
@@ -365,9 +365,9 @@ void Network::MatBackPropagation(unsigned ans) {
 void Network::MatrixLearning() {
   QList<QPointF> error_values;
   int stage_last{};
-  for (unsigned epoch = 0U; epoch < m_epoch && !break_flag_; ++epoch) {
+  for (unsigned epoch = 0U; epoch < m_epoch && !m_break_flag; ++epoch) {
     for (unsigned position = 0U;
-         position < m_input_csv_learn.size() && !break_flag_; ++position) {
+         position < m_input_csv_learn.size() && !m_break_flag; ++position) {
       DestroyLayers();
       MatForwardPropagation(m_input_csv_learn[position].second);
       error_values.push_back(
@@ -392,10 +392,10 @@ void Network::GraphInitSLayer(Matrix<Neuron> *&layer) {
 
 void Network::GraphForwardPropagation(Matrix<Neuron> *layer) {
   GraphInitSLayer(layer);
-  for (unsigned layer = m_layers_position[LayerType::kALayer];
-       layer < m_graph_layers.size(); ++layer) {
-    for (auto &it : m_graph_layers[layer]) {
-      it.ForwardPropagation(m_graph_layers[layer - 1U]);
+  for (unsigned n_layer = m_layers_position[LayerType::kALayer];
+       n_layer < m_graph_layers.size(); ++n_layer) {
+    for (auto &it : m_graph_layers[n_layer]) {
+      it.ForwardPropagation(m_graph_layers[n_layer - 1U]);
     }
   }
 }
@@ -434,9 +434,9 @@ void Network::GraphBackPropagation(unsigned ans) {
 void Network::GraphLearning() {
   QList<QPointF> error_values;
   int stage_last{};
-  for (unsigned epoch = 0U; epoch < m_epoch && !break_flag_; ++epoch) {
+  for (unsigned epoch = 0U; epoch < m_epoch && !m_break_flag; ++epoch) {
     for (unsigned position = 0U;
-         position < m_input_csv_learn.size() && !break_flag_; ++position) {
+         position < m_input_csv_learn.size() && !m_break_flag; ++position) {
       GraphForwardPropagation(m_input_csv_learn[position].second);
       error_values.push_back(
           GraphTrainingError(position, m_input_csv_learn[position].first));
@@ -484,8 +484,8 @@ std::vector<double> Network::FormMetrixNetwork(
   metrics[Metrics::kPrecision] = TP / (TP + FP);
   metrics[Metrics::kRecall] = TP / (TP + FN);
 
-  double &precision = metrics[Metrics::kPrecision];
-  double &recall = metrics[Metrics::kRecall];
+  const double &precision = metrics[Metrics::kPrecision];
+  const double &recall = metrics[Metrics::kRecall];
 
   metrics[Metrics::kFMeasure] =
       (2.0 * precision * recall) / (precision + recall);
@@ -496,7 +496,7 @@ std::vector<double> Network::MatrixTesting() {
   std::vector<unsigned> confusion(ConfusionMatrix::kConfusionMatrixAttribute,
                                   0U);
   for (unsigned position = 0U;
-       position < m_input_csv_tests.size() && !break_flag_; ++position) {
+       position < m_input_csv_tests.size() && !m_break_flag; ++position) {
     DestroyLayers();
     MatForwardPropagation(m_input_csv_tests[position].second);
     MatFormConfusionMatrix(confusion, m_input_csv_tests[position].first - 1U);
@@ -508,7 +508,7 @@ std::vector<double> Network::MatrixTesting() {
 
 void Network::GraphFormConfusionMatrix(std::vector<unsigned> &confusion,
                                        unsigned ans) {
-  std::vector<GNeuron> &layer =
+  const std::vector<GNeuron> &layer =
       m_graph_layers[m_layers_position[LayerType::kRLayer]];
   for (unsigned i = 0U; i < layer.size(); ++i) {
     if (layer[i].data > 0.5) {
@@ -530,8 +530,8 @@ void Network::GraphFormConfusionMatrix(std::vector<unsigned> &confusion,
 Matrix<Neuron> *Network::SenseData(QImage normal_image) {
   Matrix<Neuron> *sense_matrix =
       new Matrix<Neuron>(normal_image.width() * normal_image.height(), 1U);
-  for (unsigned rows = 0; rows < normal_image.height(); ++rows) {
-    for (unsigned cols = 0; cols < normal_image.width(); ++cols) {
+  for (int rows = 0; rows < normal_image.height(); ++rows) {
+    for (int cols = 0; cols < normal_image.width(); ++cols) {
       sense_matrix->operator()(rows * normal_image.width() + cols, 0U).data =
           QColor(normal_image.pixel(rows, cols)).blackF();
     }
@@ -543,7 +543,7 @@ std::vector<double> Network::GraphTesting() {
   std::vector<unsigned> confusion(ConfusionMatrix::kConfusionMatrixAttribute,
                                   0U);
   for (unsigned position = 0U;
-       position < m_input_csv_tests.size() && !break_flag_; ++position) {
+       position < m_input_csv_tests.size() && !m_break_flag; ++position) {
     GraphForwardPropagation(m_input_csv_tests[position].second);
     GraphFormConfusionMatrix(confusion, m_input_csv_tests[position].first - 1U);
     emit NetworkTestingStage((int)test_stage);
@@ -566,7 +566,7 @@ QPointF Network::MatrixTrainingError(unsigned position, unsigned ans) {
 QPointF Network::GraphTrainingError(unsigned position, unsigned ans) {
   QPointF point(static_cast<float>(position), 0.0);
 
-  std::vector<GNeuron> &out = m_graph_layers.back();
+  const std::vector<GNeuron> &out = m_graph_layers.back();
   double deviation{};
   for (unsigned row = 0U; row < out.size(); ++row) {
     deviation += qPow(out[row].data - (ans != row ? 0.0 : 1.0), 2.0);
@@ -580,11 +580,11 @@ void Network::MatrixValidation() {
   int stage_last{};
   unsigned block = m_input_csv_learn.size() / m_validation_parts;
   for (unsigned itteration = 0U;
-       itteration < m_validation_parts && !break_flag_; ++itteration) {
+       itteration < m_validation_parts && !m_break_flag; ++itteration) {
     unsigned s_skip_block = itteration * block;
     unsigned e_skip_block = (itteration + 1U) * block;
     for (unsigned position = 0U;
-         position < m_input_csv_learn.size() && !break_flag_; ++position) {
+         position < m_input_csv_learn.size() && !m_break_flag; ++position) {
       if ((position < s_skip_block) || (position > e_skip_block)) {
         DestroyLayers();
         MatForwardPropagation(m_input_csv_learn[position].second);
@@ -608,11 +608,11 @@ void Network::GpaphValidation() {
   int stage_last{};
   unsigned block = m_input_csv_learn.size() / m_validation_parts;
   for (unsigned itteration = 0U;
-       itteration < m_validation_parts && !break_flag_; ++itteration) {
+       itteration < m_validation_parts && !m_break_flag; ++itteration) {
     unsigned s_skip_block = itteration * block;
     unsigned e_skip_block = (itteration + 1U) * block;
     for (unsigned position = 0U;
-         position < m_input_csv_learn.size() && !break_flag_; ++position) {
+         position < m_input_csv_learn.size() && !m_break_flag; ++position) {
       if ((position < s_skip_block) || (position > e_skip_block)) {
         GraphForwardPropagation(m_input_csv_learn[position].second);
         error_values.push_back(GraphTrainingError(

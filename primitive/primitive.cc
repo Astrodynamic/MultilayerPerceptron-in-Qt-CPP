@@ -9,13 +9,15 @@ Weight::Weight(double data) : data{data} {}
 
 void Neuron::ActivationFunction() { data = 1.0 / (1.0 + std::exp(-data)); }
 
-double Neuron::DerivativeActivatioFunction() { return data * (1.0 - data); }
+double Neuron::DerivativeActivatioFunction() const {
+  return data * (1.0 - data);
+}
 
-double Neuron::Delta(Neuron &target) {
+double Neuron::Delta(const Neuron &target) const {
   return (data - target.data) * DerivativeActivatioFunction();
 }
 
-void GNeuron::ForwardPropagation(std::vector<GNeuron> &layer) {
+void GNeuron::ForwardPropagation(const std::vector<GNeuron> &layer) {
   data = bias->data;
   for (unsigned i = 0; i < layer.size(); ++i) {
     data += layer[i].data * prev[i]->data;
@@ -27,7 +29,7 @@ void GNeuron::Delta(double ans) {
   delta = (data - ans) * DerivativeActivatioFunction();
 }
 
-void GNeuron::Delta(std::vector<GNeuron> &layer) {
+void GNeuron::Delta(const std::vector<GNeuron> &layer) {
   delta = {};
   for (unsigned i = 0U; i < layer.size(); ++i) {
     delta += next[i]->data * layer[i].delta;
@@ -35,7 +37,7 @@ void GNeuron::Delta(std::vector<GNeuron> &layer) {
   delta *= DerivativeActivatioFunction();
 }
 
-void GNeuron::CorrectWeights(std::vector<GNeuron> &layer, double rate) {
+void GNeuron::CorrectWeights(const std::vector<GNeuron> &layer, double rate) {
   for (unsigned i = 0U; i < layer.size(); ++i) {
     prev[i]->data -= rate * layer[i].data * delta;
   }

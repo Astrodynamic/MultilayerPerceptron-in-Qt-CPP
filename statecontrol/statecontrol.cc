@@ -1,16 +1,16 @@
 #include "statecontrol.h"
 
 StateControl::StateControl(Network &model, QObject *parent)
-    : QObject{parent}, model_{model}, cur_process_{kWaitCommand} {}
+    : QObject{parent}, m_model{model}, m_cur_process{kWaitCommand} {}
 
 bool StateControl::CheckProcess(ModelProcess command_new_proc) {
   QMessageBox dialog;
   QString name_process;
-  if (cur_process_ != kWaitCommand) {
-    if (cur_process_ != kIsLearning && cur_process_ != kIsTesting) {
-      if (cur_process_ != kIsLoadingTestingData &&
-          cur_process_ != kIsLoadingTrainData) {
-        switch (cur_process_) {
+  if (m_cur_process != kWaitCommand) {
+    if (m_cur_process != kIsLearning && m_cur_process != kIsTesting) {
+      if (m_cur_process != kIsLoadingTestingData &&
+          m_cur_process != kIsLoadingTrainData) {
+        switch (m_cur_process) {
           case kIsUpdating:
             name_process = "updating";
             break;
@@ -32,7 +32,7 @@ bool StateControl::CheckProcess(ModelProcess command_new_proc) {
       }
       return false;
     } else {
-      switch (cur_process_) {
+      switch (m_cur_process) {
         case kIsLearning:
           name_process = "Learning";
           break;
@@ -46,9 +46,9 @@ bool StateControl::CheckProcess(ModelProcess command_new_proc) {
       dialog.setInformativeText("Do you want to breake it?");
       dialog.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
       if (dialog.exec() == QMessageBox::Yes) {
-        model_.thread()->wait(10);
-        model_.BreakProcess();
-        if (command_new_proc == cur_process_) {
+        m_model.thread()->wait(10);
+        m_model.BreakProcess();
+        if (command_new_proc == m_cur_process) {
           return false;
         }
       } else {
@@ -65,7 +65,7 @@ bool StateControl::CheckState(ModelProcess command_new_proc) {
   dialog.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
   switch (command_new_proc) {
     case kIsLearning: {
-      if (!data_[kLearnigData]) {
+      if (!m_data[kLearnigData]) {
         dialog.setText("Learning data in not loaded.");
         if (dialog.exec() == QMessageBox::Yes) {
           emit InitLoadLearningDate();
@@ -76,7 +76,7 @@ bool StateControl::CheckState(ModelProcess command_new_proc) {
       break;
     }
     case kIsTesting: {
-      if (!model_state_[kIsLearned]) {
+      if (!m_model_state[kIsLearned]) {
         dialog.setText("MLP is not learned.");
         dialog.setInformativeText("Do you want to teach it?");
         if (dialog.exec() == QMessageBox::Yes) {
@@ -84,7 +84,7 @@ bool StateControl::CheckState(ModelProcess command_new_proc) {
         }
         return false;
       } else {
-        if (!data_[kTestingData]) {
+        if (!m_data[kTestingData]) {
           dialog.setText("Testing data in not loaded.");
           if (dialog.exec() == QMessageBox::Yes) {
             emit InitLoadTestingDate();
@@ -96,7 +96,7 @@ bool StateControl::CheckState(ModelProcess command_new_proc) {
       break;
     }
     case kIsThinking: {
-      if (!model_state_[kIsLearned]) {
+      if (!m_model_state[kIsLearned]) {
         dialog.setText("MLP is not learned.");
         dialog.setInformativeText("Do you want to teach it?");
         if (dialog.exec() == QMessageBox::Yes) {
@@ -107,8 +107,8 @@ bool StateControl::CheckState(ModelProcess command_new_proc) {
       break;
     }
     case kIsLoadingTrainData: {
-      if (!model_state_[kIsUpdated]) {
-        cur_process_ = kIsUpdating;
+      if (!m_model_state[kIsUpdated]) {
+        m_cur_process = kIsUpdating;
         emit InitUpdating();
         emit InitLoadLearningDate();
         return false;
@@ -118,41 +118,41 @@ bool StateControl::CheckState(ModelProcess command_new_proc) {
     default:
       break;
   }
-  cur_process_ = command_new_proc;
+  m_cur_process = command_new_proc;
   return true;
 }
 
 void StateControl::SetItReady() {
-  switch (cur_process_) {
+  switch (m_cur_process) {
     case kIsUpdating: {
-      model_state_.set(kIsUpdated);
+      m_model_state.set(kIsUpdated);
       break;
     }
     case kIsLearning: {
-      model_state_.set(kIsLearned);
-      model_state_.reset(kIsTested);
+      m_model_state.set(kIsLearned);
+      m_model_state.reset(kIsTested);
       break;
     }
     case kIsTesting: {
-      model_state_.set(kIsTested);
+      m_model_state.set(kIsTested);
       break;
     }
     case kIsLoadingWeigts: {
-      model_state_.set(kIsUpdated);
-      model_state_.set(kIsLearned);
-      model_state_.set(kIsTested);
+      m_model_state.set(kIsUpdated);
+      m_model_state.set(kIsLearned);
+      m_model_state.set(kIsTested);
       break;
     }
     case kIsLoadingTrainData: {
-      data_.set(kLearnigData);
+      m_data.set(kLearnigData);
       break;
     }
     case kIsLoadingTestingData: {
-      data_.set(kTestingData);
+      m_data.set(kTestingData);
       break;
     }
     default:
       break;
   }
-  cur_process_ = kWaitCommand;
+  m_cur_process = kWaitCommand;
 }

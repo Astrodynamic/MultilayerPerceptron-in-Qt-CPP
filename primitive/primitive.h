@@ -21,8 +21,8 @@ struct Neuron {
  public:
   double data = {};
   void ActivationFunction();
-  double Delta(Neuron &target);
-  double DerivativeActivatioFunction();
+  double Delta(const Neuron &target) const;
+  double DerivativeActivatioFunction() const;
 };
 
 struct GNeuron : public Neuron {
@@ -34,9 +34,9 @@ struct GNeuron : public Neuron {
 
   void Delta(double ans = {});
   double Delta(Neuron &target) = delete;
-  void Delta(std::vector<GNeuron> &layer);
-  void ForwardPropagation(std::vector<GNeuron> &layer);
-  void CorrectWeights(std::vector<GNeuron> &layer, double rate);
+  void Delta(const std::vector<GNeuron> &layer);
+  void ForwardPropagation(const std::vector<GNeuron> &layer);
+  void CorrectWeights(const std::vector<GNeuron> &layer, double rate);
 };
 
 #endif  // MLP_PRIMITIVE_PRIMITIVE_H_

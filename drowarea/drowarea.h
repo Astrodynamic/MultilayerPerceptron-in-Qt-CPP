@@ -14,10 +14,10 @@ class DrowArea : public QGraphicsScene {
   void mousePressEvent(QGraphicsSceneMouseEvent *event);
   void mouseMoveEvent(QGraphicsSceneMouseEvent *event);
   void mouseReleaseEvent(QGraphicsSceneMouseEvent *event);
-  QPointF lastPoint_;
-  QColor brush_color_{Qt::black};
-  int size_{45};
-  bool line_end_{true};
+  QPointF m_lastPoint;
+  QColor m_brush_color{Qt::black};
+  int m_size{45};
+  bool m_line_end{true};
 
  public slots:
   void SetBrushSize(int);

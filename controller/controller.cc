@@ -19,7 +19,7 @@ Controller::Controller(QWidget *parent)
     : QMainWindow(parent),
       ui(new Ui::View),
       m_model(this),
-      model_state_(m_model, this) {
+      m_model_state(m_model, this) {
   ui->setupUi(this);
   SetDrowArea();
   MakeThread();
@@ -39,7 +39,7 @@ Controller::~Controller() {
 }
 
 void Controller::GetPicture() {
-  if (model_state_.CheckProcess(kIsThinking)) {
+  if (m_model_state.CheckProcess(kIsThinking)) {
     emit SendImg(ui->graphicsView->grab());
   }
 }
@@ -96,19 +96,19 @@ void Controller::ConnectDataSlots() {
 }
 
 void Controller::ConnectStateSlots() {
-  connect(&m_model, SIGNAL(IsReady()), &model_state_, SLOT(SetItReady()));
+  connect(&m_model, SIGNAL(IsReady()), &m_model_state, SLOT(SetItReady()));
 
-  connect(&model_state_, SIGNAL(InitUpdating()), ui->layout_info,
+  connect(&m_model_state, SIGNAL(InitUpdating()), ui->layout_info,
           SLOT(SendLayouts()));
 
-  connect(&model_state_, SIGNAL(InitLoadLearningDate()),
+  connect(&m_model_state, SIGNAL(InitLoadLearningDate()),
           ui->actionLoad_learning_data, SIGNAL(triggered()));
-  connect(&model_state_, SIGNAL(InitLearning()), ui->teach_btn,
+  connect(&m_model_state, SIGNAL(InitLearning()), ui->teach_btn,
           SIGNAL(clicked()));
 
-  connect(&model_state_, SIGNAL(InitLoadTestingDate()),
+  connect(&m_model_state, SIGNAL(InitLoadTestingDate()),
           ui->actionLoad_testing_data, SIGNAL(triggered()));
-  connect(&model_state_, SIGNAL(InitTesting()), ui->test_btn,
+  connect(&m_model_state, SIGNAL(InitTesting()), ui->test_btn,
           SIGNAL(clicked()));
 }
 
@@ -117,10 +117,10 @@ void Controller::ConnectThread() {
   thr_state = new QThread(this);
 
   m_model.setParent(nullptr);
-  model_state_.setParent(nullptr);
+  m_model_state.setParent(nullptr);
 
   m_model.moveToThread(thr);
-  model_state_.moveToThread(thr_state);
+  m_model_state.moveToThread(thr_state);
 
   thr_state->start(QThread::HighPriority);
   thr->start(QThread::NormalPriority);
@@ -151,7 +151,7 @@ void Controller::SetTableController() {
 }
 
 void Controller::on_actionLoad_learning_data_triggered() {
-  if (model_state_.CheckProcess(kIsLoadingTrainData)) {
+  if (m_model_state.CheckProcess(kIsLoadingTrainData)) {
     QString file_way = QFileDialog::getOpenFileName(
         this, tr("Load learning data"), QDir::homePath(), tr("Data (*.csv)"));
     if (!file_way.isEmpty()) {
@@ -163,7 +163,7 @@ void Controller::on_actionLoad_learning_data_triggered() {
 }
 
 void Controller::on_actionLoad_testing_data_triggered() {
-  if (model_state_.CheckProcess(kIsLoadingTestingData)) {
+  if (m_model_state.CheckProcess(kIsLoadingTestingData)) {
     QString file_way = QFileDialog::getOpenFileName(
         this, tr("Load testing data"), QDir::homePath(), tr("Data (*.csv)"));
     if (!file_way.isEmpty()) {
@@ -175,7 +175,7 @@ void Controller::on_actionLoad_testing_data_triggered() {
 }
 
 void Controller::on_teach_btn_clicked() {
-  if (model_state_.CheckProcess(kIsLearning)) {
+  if (m_model_state.CheckProcess(kIsLearning)) {
     if (ui->type_cbx->currentIndex()) {
       m_model.SetLearningType(NetworkFlags::kGraphLearning);
     } else {
@@ -188,7 +188,7 @@ void Controller::on_teach_btn_clicked() {
 }
 
 void Controller::on_test_btn_clicked() {
-  if (model_state_.CheckProcess(kIsTesting)) {
+  if (m_model_state.CheckProcess(kIsTesting)) {
     emit StartTesting();
     ui->test_btn->setText("Breake");
   }
@@ -210,7 +210,7 @@ void Controller::SetTestingTime(QTime time_stamp) {
 }
 
 void Controller::on_actionLoad_MLP_triggered() {
-  if (model_state_.CheckProcess(kIsLoadingWeigts)) {
+  if (m_model_state.CheckProcess(kIsLoadingWeigts)) {
     m_model.LoadBinMLP(QFileDialog::getOpenFileName(
         this, "Load MLP", QDir::homePath(), "MlP (*.mlp)"));
     ui->learn_pbr->setValue(100);

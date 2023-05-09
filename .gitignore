@@ -51,7 +51,7 @@ Mkfile.old
 dkms.conf
 
 # CMake Files
-CMakeCache.txt.*
+CMakeLists.txt.*
 
 # MacOS files
 .DS_Store

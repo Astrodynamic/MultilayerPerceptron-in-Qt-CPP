@@ -33,10 +33,10 @@ class StateControl : public QObject {
   bool CheckProcess(ModelProcess);
 
  private:
-  Network &model_;
-  ModelProcess cur_process_;
-  std::bitset<ModelState::sSize> model_state_;
-  std::bitset<DataLoaded::dSize> data_;
+  Network &m_model;
+  ModelProcess m_cur_process;
+  std::bitset<ModelState::sSize> m_model_state;
+  std::bitset<DataLoaded::dSize> m_data;
 
   bool CheckState(ModelProcess);
 
