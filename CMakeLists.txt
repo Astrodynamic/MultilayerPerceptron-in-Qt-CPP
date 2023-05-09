@@ -146,12 +146,10 @@ if(CPPCHECK)
     "--quiet"
     "--language=c++"
     "--std=c++17"
-    "--suppress=missingIncludeSystem"
     "--suppress=unusedFunction"
     "--suppress=missingInclude"
     "--suppress=unusedStructMember"
     "--suppress=variableScope"
-    "--suppress=uninitMemberVar"
     "--suppress=*:${PROJECT_SOURCE_DIR}/lib/*"
   )
   add_custom_target(
